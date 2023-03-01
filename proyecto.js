@@ -1,10 +1,13 @@
+//class
+
 class simulador{
-    constructor(nombre = "", edad = 0, monto = 0, plazo = 0,mensualidad = 0){
+    constructor(nombre = "", edad = 0, monto = 0, plazo = 0,mensualidad = 0, moneda = "COP"){
         this.nombre = nombre,
         this.edad = edad,
         this.monto = monto,
         this.plazo = plazo,
-        this.mensualidad= mensualidad
+        this.mensualidad= mensualidad,
+        this.moneda = moneda
     }
         mostrartexto(){
             console.alert(`${this.nombre}, tu edad es ${this.edad}, el monto que deseas solicitar es por valor de ${this.monto} 
@@ -14,7 +17,24 @@ class simulador{
         }
     }
 
+
+//array
 let prestamos = []
+
+//DOM
+
+
+const apiURL = "https://openexchangerates.org/api/latest.json"
+const apiKey = "6af4da415b18429c870a167e66e2d5fd"
+let colombianpeso = "COP" 
+let calcular = document.getElementById("calcularbtn")
+let pagosDiv = document.getElementById("pagomensual")
+let conversion = document.getElementById("convertirbtn")
+let eliminart = document.getElementById("eliminar")
+
+
+
+//funciones
 
 
 function agregarSimulacion(array){
@@ -31,29 +51,15 @@ function agregarSimulacion(array){
     
     
     array.push(nuevosPrestamo)  
-    
-    console.log(nuevosPrestamo)
+   
+    // console.log(nuevosPrestamo)
   
 
 }
 
-let calcular = document.getElementById("calcularbtn")
-
-
-calcular.onclick = function(){
-    agregarSimulacion(prestamos)
-    verSimulaciones(prestamos)
-    let agregarSmlcin = document.getElementById("agregarSmlcin");
-
-
-    agregarSmlcin.reset();
-
-}
-
-
 
 function calculoCuota(m,p){
-    
+    validarFormulario()
     let numerador = Math.pow((1 + 0.0233),p) *(0.0233)
     let denominador = Math.pow((1 + 0.0233), p) - 1
     let mensualidad = m*(numerador/denominador)
@@ -63,7 +69,7 @@ function calculoCuota(m,p){
 
 
 
-let pagosDiv = document.getElementById("pagomensual")
+
 
 function verSimulaciones(array){
     pagosDiv.innerHTML = "" 
@@ -74,36 +80,103 @@ function verSimulaciones(array){
         let nuevoCalculo = document.createElement("div")
         nuevoCalculo.className = "col-9"
         nuevoCalculo.innerHTML = ` <div class="alert alert-primary" role="alert">
-        ${pago.nombre} por un crédito de ${pago.monto} a un plazo de ${pago.plazo} meses, pagarias un valor de ${pago.mensualidad} mensuales.Tenga en cuenta que este calculo se realiza con una tasa de interes de 2.33% efectiva mensual y que en esta cuota no se incluyen seguros.
+        ${pago.nombre} por un crédito de ${pago.monto} a un plazo de ${pago.plazo} meses, pagarias un valor de ${pago.mensualidad.toFixed(2)} mensuales.Tenga en cuenta que este calculo se realiza con una tasa de interes de 2.33% efectiva mensual y que en esta cuota no se incluyen seguros.
         </div>` 
         pagosDiv.appendChild(nuevoCalculo)
     }
 
+    
+    
 }
 
 
-// function validarFormulario(){
-//     let edad = parseInt(document.getElementById("edadIngresada").value);
-//     let mensajeError = document.getElementById("mensajeError");
-//     if (edad < 18){
-//         mensajeError.innerHTML = "Usted no puede solicitar un prestamo, edad no válida";
-//         return;
-//     }
-//     let monto = parseInt(document.getElementById("montoIngresado").value);
-//     if(monto <  100 && monto > 1000000){
-//         mensajeError.innerHTML = `El monto ingresado ${monto} no es válido, recuerde que el valor mínimo es de 100 usd y el valor máximo son 1000000 usd`;
-//         return;
-//     }
-//     let plazo = parseInt(document.getElementById("plazoIngresado").value);
-//     if (plazo  >= 84  && plazo < 12 ){
-//         mensajeError.innerHTML = `El plazo ingresado ${plazo} no es válido, recuerde que el plazo minimo es de 12 meses y el máximo es de 84 meses`;
-//         return;
-//     }
-//     if (edad === "" || monto === "" || plazo === "") {
-//         mensajeError.innerHTML = "Todos los campos son obligatorios";
-//         return;
-//       }
-// }
+function validarFormulario(){
+    let edad = parseInt(document.getElementById("edadIngresada").value);
+    let mensajeError = document.getElementById("mensajeError");
+    if (edad < 18){
+        mensajeError.innerHTML = "Usted no puede solicitar un prestamo, edad no válida";
+        return;
+    }
+    let monto = parseInt(document.getElementById("montoIngresado").value);
+    if(monto <  100 && monto > 1000000){
+        mensajeError.innerHTML = `El monto ingresado ${monto} no es válido, recuerde que el valor mínimo es de 100 usd y el valor máximo son 1000000 usd`;
+        return;
+    }
+    let plazo = parseInt(document.getElementById("plazoIngresado").value);
+    if (plazo  >= 84  && plazo < 12 ){
+        mensajeError.innerHTML = `El plazo ingresado ${plazo} no es válido, recuerde que el plazo minimo es de 12 meses y el máximo es de 84 meses`;
+        return;
+    }
+    if (edad === "" || monto === "" || plazo === "") {
+        mensajeError.innerHTML = "Todos los campos son obligatorios";
+        return;
+      }
+}
 
 
-  
+
+function agregarConversion(){
+    let monto = parseInt(document.getElementById("montoIngresado").value);
+    let plazo = parseInt(document.getElementById("plazoIngresado").value);
+    let mensualidad = calculoCuota(monto,plazo);
+    let mensajeCambio = document.getElementById("mensajeCambio") 
+    let cambio = 0;
+    let moneda = "COP"
+    fetch(`${apiURL}?app_id=${apiKey}&base=USD`)
+        .then(response => response.json())
+        .then(data => {
+            cambio = data.rates[moneda];
+            let dolares = mensualidad / cambio;
+            mensajeCambio.className = "col-9"
+            mensajeCambio.innerHTML = ` <div class="alert alert-success" role="alert">${mensualidad} ${moneda} son ${dolares.toFixed(2)} USD.</div>`
+        })
+        .catch(error => console.error(error))
+
+}
+    
+function eliminar(){
+    let pagos = document.getElementById("pagomensual");
+    pagos.remove()
+    let mensajs= document.getElementById("mensajeCambio");
+    mensajs.remove()
+    Swal.fire({
+        title: "Eliminado",
+        text: `Se ha eliminado la consulta`,
+        icon: "info",
+        confirmButtonText: "OK!",
+        //milisegundo por medida
+        timer: 3000,
+        imageHeight : 200
+
+
+    })
+}
+
+//Eventos
+
+calcular.addEventListener("click",()=>{
+    agregarSimulacion(prestamos)
+    verSimulaciones(prestamos)
+
+
+
+})
+
+conversion.addEventListener("click",()=>{
+    agregarConversion(prestamos);
+    let agregarSmlcin = document.getElementById("agregarSmlcin");
+
+
+    agregarSmlcin.reset();
+
+ 
+
+})
+
+eliminart.addEventListener("click",()=>{
+    eliminar(prestamos)
+})
+
+
+
+
