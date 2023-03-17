@@ -41,20 +41,41 @@
 
         </div>
         <button id="calcularbtn" type="button" class="btn btn-outline-primary">Calcular</button>
-        <button id="convertirbtn" type="button" class="btn btn-outline-primary">Mostrar valor en USD</button>
-        <button id="eliminar" type="button" class="btn btn-danger">Eliminar todo</button>
+        <a id="botonCarrito" data-bs-toggle="modal" data-bs-target="#idModalCarrito" class="btn btn-secondary">Ver Simulaciones<i class="fas fa-shopping-cart fa-1x"></i></a>
         
     </form>
     <p id="mensajeError" ></p>
-    <div class="container">
-        <div id="pagomensual" class="row" role="alert"></div>
-    </div>
+    
 
-    <div class="container">
+    <!-- <div class="container">
         <div id="mensajeCambio" class="row" role="alert"></div>
-    </div>
+    </div> -->
 
-
+    <div class="modal fade" id="idModalCarrito" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Simulaciones</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modal-bodyCarrito">
+              
+            </div>
+            <div class="container">
+                <div id="pagomensual" class="row" role="alert"></div>
+            </div>
+            <div class="container">
+                <div id="mensajeCambio" class="row" role="alert"></div>
+            </div>
+        
+            <div class="modal-footer">
+              
+              <!-- <button id="convertirbtn" type="button" class="btn btn-outline-primary">Mostrar valor en USD</button> -->
+              <button id="eliminar" type="button" class="btn btn-danger">Eliminar todo</button>
+            </div>
+          </div>
+        </div>
+      </div>
     
 
 
