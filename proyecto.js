@@ -1,13 +1,13 @@
 //class
 
 class simulador{
-    constructor(nombre = "", edad = 0, monto = 0, plazo = 0,mensualidad = 0, moneda = "COP"){
+    constructor(nombre = "", edad = 0, monto = 0, plazo = 0,mensualidad = 0 , dolares = 0 ){
         this.nombre = nombre,
         this.edad = edad,
         this.monto = monto,
         this.plazo = plazo,
         this.mensualidad= mensualidad,
-        this.moneda = moneda
+        this.dolares = dolares
     }
         mostrartexto(){
             console.alert(`${this.nombre}, tu edad es ${this.edad}, el monto que deseas solicitar es por valor de ${this.monto} 
@@ -31,10 +31,8 @@ if(localStorage.getItem("prestamos")){
 
 const apiURL = "https://openexchangerates.org/api/latest.json"
 const apiKey = "6af4da415b18429c870a167e66e2d5fd"
-let colombianpeso = "COP" 
 let calcular = document.getElementById("calcularbtn")
 let pagosDiv = document.getElementById("pagomensual")
-// let conversion = document.getElementById("convertirbtn")
 let eliminart = document.getElementById("eliminar")
 let verSimulac = document.getElementById("botonCarrito")
 
@@ -43,7 +41,7 @@ let verSimulac = document.getElementById("botonCarrito")
 //funciones
 
 
-function agregarSimulacion(array){
+async function agregarSimulacion(array){
     let nombre = document.getElementById("nombreIngresado").value;
     let edad = parseInt(document.getElementById("edadIngresada").value);
     let monto = parseFloat(document.getElementById("montoIngresado").value);
@@ -66,15 +64,16 @@ function agregarSimulacion(array){
         return;
     }
     let mensualidad = calculoCuota(monto,plazo);
-
-    const nuevosPrestamo = new simulador(nombre, edad, monto,plazo, mensualidad);
-
-    localStorage.setItem("prestamos", JSON.stringify(array))
+    let dolares = await conversion(mensualidad);
     
+
+
+    const nuevosPrestamo = new simulador(nombre, edad, monto,plazo, mensualidad,dolares);
     
     array.push(nuevosPrestamo)  
-   
-    // console.log(nuevosPrestamo)
+    localStorage.setItem("prestamos", JSON.stringify(array))
+     
+
   
 
 }
@@ -93,7 +92,6 @@ function calculoCuota(m,p){
 
 
 function verSimulaciones(array){
-    pagosDiv.innerHTML = "" 
 
     for(let pago of array){
         
@@ -101,39 +99,32 @@ function verSimulaciones(array){
         let nuevoCalculo = document.createElement("div")
         nuevoCalculo.className = "col-9"
         nuevoCalculo.innerHTML = ` <div class="alert alert-primary" role="alert">
-        ${pago.nombre} por un crédito de ${pago.monto} a un plazo de ${pago.plazo} meses, pagarias un valor de ${pago.mensualidad.toFixed(2)} mensuales.Tenga en cuenta que este calculo se realiza con una tasa de interes de 2.33% efectiva mensual y que en esta cuota no se incluyen seguros.
+        ${pago.nombre} por un crédito de ${pago.monto} a un plazo de ${pago.plazo} meses, pagarias un valor de ${pago.mensualidad.toFixed(2)} mensuales.
+        Este valor equivale a ${pago.dolares.toFixed(2)} USD.
         </div>` 
         pagosDiv.appendChild(nuevoCalculo)
     }
 
-    
-    
 }
-
-function agregarConversion(){
-    let monto = parseInt(document.getElementById("montoIngresado").value);
-    let plazo = parseInt(document.getElementById("plazoIngresado").value);
-    let mensualidad = calculoCuota(monto,plazo);
-    let mensajeCambio = document.getElementById("mensajeCambio") 
+function conversion(mens) {
     let cambio = 0;
-    let moneda = "COP"
-    fetch(`${apiURL}?app_id=${apiKey}&base=USD`)
-        .then(response => response.json())
-        .then(data => {
-            cambio = data.rates[moneda];
-            let dolares = mensualidad / cambio;
-            mensajeCambio.className = "col-9"
-            mensajeCambio.innerHTML = ` <div class="alert alert-success" role="alert">${mensualidad.toFixed(2)} ${moneda} son ${dolares.toFixed(2)} USD.</div>`
-        })
-        // .catch(error => console.error(error))
+    let moneda = "COP";
+  
+    return fetch(`${apiURL}?app_id=${apiKey}&base=USD`)
+      .then((response) => response.json())
+      .then((data) => {
+        cambio = data.rates[moneda];
+        let dolar = mens / cambio;
+        return dolar;
+      })
+      .catch((error) => console.error(error));
+  }
 
-}
-    
+
+
 function eliminar(){
     let pagos = document.getElementById("pagomensual");
     pagos.remove()
-    let mensajs= document.getElementById("mensajeCambio");
-    mensajs.remove()
     Swal.fire({
         title: "Eliminado",
         text: `Se ha eliminado la consulta`,
@@ -151,10 +142,8 @@ function eliminar(){
 
 calcular.addEventListener("click",()=>{
     agregarSimulacion(prestamos);
-    agregarConversion(prestamos);
     let agregarSmlcin = document.getElementById("agregarSmlcin");
     agregarSmlcin.reset();
-    // verSimulaciones(prestamos)
 
 
 
@@ -162,20 +151,10 @@ calcular.addEventListener("click",()=>{
 
 verSimulac.addEventListener("click", ()=>{
     verSimulaciones(prestamos);
-    // agregarConversion(prestamos);
+    
 })
 
 
-// conversion.addEventListener("click",()=>{
-//     agregarConversion(prestamos);
-//     // let agregarSmlcin = document.getElementById("agregarSmlcin");
-
-
-//     // agregarSmlcin.reset();
-
- 
-
-// })
 
 eliminart.addEventListener("click",()=>{
     eliminar(prestamos)
