@@ -1,7 +1,8 @@
 //class
 
 class simulador{
-    constructor(nombre = "", edad = 0, monto = 0, plazo = 0,mensualidad = 0 , dolares = 0 ){
+    constructor(id, nombre = "", edad = 0, monto = 0, plazo = 0,mensualidad = 0 , dolares = 0 ){
+        this.id = id,
         this.nombre = nombre,
         this.edad = edad,
         this.monto = monto,
@@ -34,7 +35,7 @@ const apiKey = "6af4da415b18429c870a167e66e2d5fd"
 let calcular = document.getElementById("calcularbtn")
 let pagosDiv = document.getElementById("pagomensual")
 let eliminart = document.getElementById("eliminar")
-let verSimulac = document.getElementById("botonCarrito")
+let verSimulac = document.getElementById("verSimular")
 
 
 
@@ -68,10 +69,22 @@ async function agregarSimulacion(array){
     
 
 
-    const nuevosPrestamo = new simulador(nombre, edad, monto,plazo, mensualidad,dolares);
+    const nuevosPrestamo = new simulador(array.length+1,nombre, edad, monto,plazo, mensualidad,dolares);
     
     array.push(nuevosPrestamo)  
     localStorage.setItem("prestamos", JSON.stringify(array))
+
+    Toastify({
+        text: `Se realizo el cálculo correctamente para ver el resultado presione el boton VER SIMULACIONES`,
+        duration: 5500,
+        gravity: "bottom",
+        position: "right",
+        style: {
+            background: "linear-gradient(to right, #00b09b, #96c93d)",
+            color: "black"
+          }
+    }).showToast()
+
      
 
   
@@ -92,20 +105,48 @@ function calculoCuota(m,p){
 
 
 function verSimulaciones(array){
-
-    for(let pago of array){
+    pagosDiv.innerHTML = ""
+    array.forEach((pago)=> {
         
         
         let nuevoCalculo = document.createElement("div")
         nuevoCalculo.className = "col-9"
-        nuevoCalculo.innerHTML = ` <div class="alert alert-primary" role="alert">
+        nuevoCalculo.innerHTML += ` <div class="alert alert-primary" id="pago${pago.id}" role="alert">
         ${pago.nombre} por un crédito de ${pago.monto} a un plazo de ${pago.plazo} meses, pagarias un valor de ${pago.mensualidad.toFixed(2)} mensuales.
         Este valor equivale a ${pago.dolares.toFixed(2)} USD.
+        <div
+        <button id="eliminar${pago.id}" type="button" class="btn btn-danger">Eliminar Consulta</button>
+        </div>
         </div>` 
         pagosDiv.appendChild(nuevoCalculo)
-    }
+    })
+    array.forEach((pago)=>{
 
-}
+        document.getElementById(`eliminar${pago.id}`).addEventListener("click", ()=>{
+            let mensajeSalida = document.getElementById(`pago${pago.id}`)
+            mensajeSalida.remove()
+            Swal.fire({
+                title: "Eliminado",
+                text: `Se ha eliminado la consulta`,
+                icon: "info",
+                confirmButtonText: "OK!",
+                timer: 3000,
+                imageHeight : 200
+        
+        
+            })
+            let mensajeEliminar = array.find(calculo => calculo.id == pago.id)
+            console.log(mensajeEliminar)
+            let posicion = array.indexOf(mensajeEliminar)
+            console.log(posicion)
+
+            array.splice(posicion, 1)
+            console.log(array)
+            localStorage.setItem("prestamos", JSON.stringify(array))
+        })
+    })
+}    
+   
 function conversion(mens) {
     let cambio = 0;
     let moneda = "COP";
@@ -122,21 +163,7 @@ function conversion(mens) {
 
 
 
-function eliminar(){
-    let pagos = document.getElementById("pagomensual");
-    pagos.remove()
-    Swal.fire({
-        title: "Eliminado",
-        text: `Se ha eliminado la consulta`,
-        icon: "info",
-        confirmButtonText: "OK!",
-        //milisegundo por medida
-        timer: 3000,
-        imageHeight : 200
 
-
-    })
-}
 
 //Eventos
 
@@ -144,8 +171,6 @@ calcular.addEventListener("click",()=>{
     agregarSimulacion(prestamos);
     let agregarSmlcin = document.getElementById("agregarSmlcin");
     agregarSmlcin.reset();
-
-
 
 })
 
@@ -155,10 +180,6 @@ verSimulac.addEventListener("click", ()=>{
 })
 
 
-
-eliminart.addEventListener("click",()=>{
-    eliminar(prestamos)
-})
 
 
 
